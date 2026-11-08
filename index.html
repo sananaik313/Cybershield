@@ -1,0 +1,829 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cyber Shield</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap">
+<style>
+/* Layout: one centred column. The phone mock is the stage; the answer buttons sit below it and are replaced by the red-flag reveal once the player chooses. */
+:root{
+  --bg:#EDF2F0; --surface:#FFFFFF; --ink:#10282A; --muted:#475F61; --line:#C6D4D1;
+  --brand:#0B5D5E; --on-brand:#FFFFFF; --brand-soft:#D8EEEC;
+  --safe:#1B7A3E; --safe-bg:#E1F3E7; --on-safe:#FFFFFF;
+  --danger:#B3261E; --danger-bg:#FBE8E6; --on-danger:#FFFFFF;
+  --warn:#8A5A00; --warn-bg:#FFF0C7;
+  --mark:#FFD84D; --mark-ink:#10282A; --good-mark:#A8E6BC;
+  --screen:#E3E9E7; --bubble:#FFFFFF; --frame:#16302F;
+  --font-display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;
+  --font-body:'Atkinson Hyperlegible','Segoe UI',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0C1A1B; --surface:#142426; --ink:#E6F0EE; --muted:#9DB5B2; --line:#294245;
+    --brand:#4FC3C0; --on-brand:#062425; --brand-soft:#123536;
+    --safe:#5CD48A; --safe-bg:#11301E; --on-safe:#05210F;
+    --danger:#FF8A80; --danger-bg:#3A1613; --on-danger:#3A0B07;
+    --warn:#FFD27A; --warn-bg:#3A2B08;
+    --mark:#F2C94C; --mark-ink:#10282A; --good-mark:#7FD6A0;
+    --screen:#1A2628; --bubble:#25343A; --frame:#050D0E;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0C1A1B; --surface:#142426; --ink:#E6F0EE; --muted:#9DB5B2; --line:#294245;
+  --brand:#4FC3C0; --on-brand:#062425; --brand-soft:#123536;
+  --safe:#5CD48A; --safe-bg:#11301E; --on-safe:#05210F;
+  --danger:#FF8A80; --danger-bg:#3A1613; --on-danger:#3A0B07;
+  --warn:#FFD27A; --warn-bg:#3A2B08;
+  --mark:#F2C94C; --mark-ink:#10282A; --good-mark:#7FD6A0;
+  --screen:#1A2628; --bubble:#25343A; --frame:#050D0E;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:var(--font-body); font-size:18px; line-height:1.5;
+  padding-block:20px 40px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+}
+h1,h2,h3{font-family:var(--font-display); margin:0; text-wrap:balance; line-height:1.15}
+p{margin:0}
+[hidden]{display:none!important}
+.app{max-width:560px; margin-inline:auto; display:grid; gap:22px}
+main{display:grid; gap:22px; min-width:0}
+section{display:grid; gap:18px; min-width:0}
+
+.top{display:flex; align-items:center; gap:10px}
+.logo{color:var(--brand); display:grid}
+.logo .ic{width:36px; height:36px}
+.wordmark{font-family:var(--font-display); font-weight:800; font-size:1.35rem; letter-spacing:-.01em; display:block; line-height:1.1}
+.by{display:block; font-size:.85rem; color:var(--muted)}
+
+.ic{width:1.25em; height:1.25em; flex:none}
+
+/* Welcome */
+.hero h1{font-weight:800; font-size:clamp(2rem, 8.5vw, 2.9rem); letter-spacing:-.02em}
+.hero p{margin-top:12px; color:var(--muted); max-width:34em}
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:20px; display:grid; gap:18px; min-width:0}
+.field{display:grid; gap:6px; min-width:0}
+.field label,.field legend{font-weight:700}
+fieldset{border:0; padding:0; margin:0; min-width:0}
+input[type=text],select{
+  width:100%; min-height:56px; font:inherit; color:var(--ink);
+  background:var(--bg); border:2px solid var(--line); border-radius:12px; padding:0 14px;
+}
+input[type=text]:focus-visible,select:focus-visible{outline:3px solid var(--ink); outline-offset:2px}
+.hint{font-size:.9rem; color:var(--muted)}
+.err{color:var(--danger); font-weight:700; min-height:1.5em}
+.opts{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.opt{position:relative; display:block; min-width:0}
+.opt input{position:absolute; opacity:0; inset:0; width:100%; height:100%; margin:0; cursor:pointer}
+.opt .card{display:block; border:2px solid var(--line); border-radius:12px; padding:10px 12px; min-height:62px; background:var(--bg)}
+.opt .card strong{display:block}
+.opt .card small{color:var(--muted); font-size:.88rem}
+.opt input:checked + .card{border-color:var(--brand); background:var(--brand-soft)}
+.opt input:focus-visible + .card{outline:3px solid var(--ink); outline-offset:2px}
+
+.btn{
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  min-height:62px; width:100%; padding:10px 18px;
+  font:inherit; font-weight:700; font-size:1.12rem; text-align:center;
+  border:2px solid transparent; border-radius:14px; cursor:pointer;
+}
+.btn:focus-visible{outline:3px solid var(--ink); outline-offset:3px}
+.btn .ic{width:1.5em; height:1.5em}
+.btn.primary{background:var(--brand); color:var(--on-brand)}
+.btn.report{background:var(--danger); color:var(--on-danger)}
+.btn.trust{background:var(--safe); color:var(--on-safe)}
+.btn.ghost{background:transparent; color:var(--ink); border-color:var(--ink)}
+.btn:active{transform:translateY(1px)}
+
+/* HUD */
+.hud{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+.meter{display:grid; gap:8px; min-width:0; align-content:start}
+.lbl{display:flex; justify-content:space-between; align-items:baseline; gap:8px; font-size:.82rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--muted)}
+.lbl b{font-size:1.15rem; letter-spacing:0; color:var(--ink); font-variant-numeric:tabular-nums}
+.bar{height:14px; border-radius:99px; background:var(--line); overflow:hidden}
+.bar i{display:block; height:100%; width:0; background:var(--ink); border-radius:99px; transition:width .4s ease}
+.segs{display:flex; gap:4px}
+.seg{flex:1; height:14px; border-radius:4px; background:var(--brand); border:2px solid var(--brand)}
+.seg.lost{background:transparent; border:2px dashed var(--danger)}
+.segs.hit{animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+/* Phone */
+.phone{background:var(--frame); border-radius:30px; padding:10px; width:100%; max-width:380px; margin-inline:auto}
+.screen{background:var(--screen); border-radius:22px; overflow:hidden; min-width:0}
+.statusbar{display:flex; justify-content:space-between; padding:8px 18px 4px; font-size:.78rem; font-weight:700; color:var(--muted); font-variant-numeric:tabular-nums}
+.appbar{display:flex; align-items:center; gap:12px; padding:10px 16px 12px; border-bottom:1px solid var(--line)}
+.avatar{width:42px; height:42px; border-radius:50%; background:var(--brand-soft); color:var(--brand); display:grid; place-items:center; font-weight:800; flex:none}
+.who{font-weight:700; overflow-wrap:anywhere}
+.via{font-size:.84rem; color:var(--muted)}
+.chat{padding:16px; display:grid; gap:8px; min-height:170px; align-content:start}
+.day{justify-self:center; font-size:.78rem; color:var(--muted); background:var(--line); padding:2px 10px; border-radius:99px}
+.bubble{background:var(--bubble); border-radius:4px 16px 16px 16px; padding:12px 14px; font-size:1.02rem; overflow-wrap:anywhere; min-width:0; justify-self:start; max-width:100%}
+.time{font-size:.76rem; color:var(--muted); justify-self:start; padding-left:4px}
+.chip{display:flex; align-items:center; gap:10px; margin-top:10px; padding:10px 12px; border-radius:10px; background:var(--screen); border:1px solid var(--line); font-size:.95rem; overflow-wrap:anywhere; min-width:0}
+.chip.link span{color:var(--brand); text-decoration:underline}
+.chip small{display:block; color:var(--muted)}
+.shot{margin-top:10px; border:1px solid var(--line); border-radius:10px; padding:12px; background:var(--screen); display:grid; gap:2px}
+.shot .tag{font-size:.74rem; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); font-weight:700}
+.shot .amt{font-family:var(--font-display); font-weight:800; font-size:1.7rem}
+.shot .st{font-size:.9rem; color:var(--muted)}
+.qr{margin-top:10px; width:128px; height:128px; border-radius:8px; display:block}
+
+/* Red flags revealed on the message itself */
+mark.flag{background:none; color:inherit}
+.fn{display:none}
+.revealed mark.flag{background:var(--mark); color:var(--mark-ink); padding:0 .15em; border-radius:4px; -webkit-box-decoration-break:clone; box-decoration-break:clone}
+.revealed.is-genuine mark.flag{background:var(--good-mark)}
+.revealed .fn{display:inline-grid; place-items:center; min-width:1.35em; height:1.35em; margin-left:.3em; border-radius:50%; background:var(--ink); color:var(--bg); font-size:.72em; font-weight:800; vertical-align:.25em}
+
+/* Question + actions */
+.actions{display:grid; gap:12px}
+.actions h2{font-size:1.4rem; font-weight:800}
+.actions h2:focus{outline:none}
+.fb{display:grid; gap:18px}
+.banner{display:flex; gap:14px; align-items:flex-start; padding:16px; border-radius:16px; border:2px solid}
+.banner h2{font-size:1.35rem; font-weight:800}
+.banner h2:focus{outline:none}
+.banner p{margin-top:4px}
+.bicon{width:40px; height:40px; border-radius:50%; display:grid; place-items:center; flex:none; color:var(--bg)}
+.bicon .ic{width:24px; height:24px}
+.banner.win{background:var(--safe-bg); border-color:var(--safe)} .banner.win .bicon{background:var(--safe); color:var(--on-safe)}
+.banner.lose{background:var(--danger-bg); border-color:var(--danger)} .banner.lose .bicon{background:var(--danger); color:var(--on-danger)}
+.banner.info{background:var(--warn-bg); border-color:var(--warn)} .banner.info .bicon{background:var(--warn); color:var(--warn-bg)}
+.fb h3{font-size:1.2rem; font-weight:800}
+.flags{list-style:none; margin:0; padding:0; display:grid; gap:14px}
+.flags li{display:grid; grid-template-columns:auto 1fr; gap:12px; align-items:start}
+.flags b{display:block}
+.badge{width:32px; height:32px; border-radius:50%; background:var(--mark); color:var(--mark-ink); display:grid; place-items:center; font-weight:800}
+.fb.genuine .badge{background:var(--good-mark)}
+.tip{background:var(--brand-soft); border:1px solid var(--line); border-radius:14px; padding:14px 16px; display:grid; gap:4px}
+
+/* Summary */
+.rating{border:2px solid; border-radius:20px; padding:22px; display:grid; gap:10px}
+.rating .eyebrow{font-weight:700; color:var(--muted)}
+.rating h1{font-weight:800; font-size:clamp(2rem, 9vw, 3rem); letter-spacing:-.02em; display:flex; align-items:center; gap:12px}
+.rating h1 .ic{width:1.1em; height:1.1em}
+.rating h1:focus{outline:none}
+.rating.expert{background:var(--safe-bg); border-color:var(--safe)}
+.rating.sharper{background:var(--warn-bg); border-color:var(--warn)}
+.rating.vulnerable{background:var(--danger-bg); border-color:var(--danger)}
+.stats{display:flex; flex-wrap:wrap; gap:8px 22px; font-weight:700}
+.stats span{font-variant-numeric:tabular-nums}
+.rows{list-style:none; margin:0; padding:0; display:grid; gap:0}
+.rows li{display:grid; grid-template-columns:auto 1fr; gap:12px; padding:12px 0; border-top:1px solid var(--line); align-items:start}
+.rows li:first-child{border-top:0}
+.rows .mk{width:30px; height:30px; border-radius:50%; display:grid; place-items:center; color:var(--on-safe); background:var(--safe)}
+.rows .mk.bad{background:var(--danger); color:var(--on-danger)}
+.rows .mk.meh{background:var(--warn); color:var(--warn-bg)}
+.rows .mk .ic{width:18px; height:18px}
+.rows small{display:block; color:var(--muted)}
+.rows strong{overflow-wrap:anywhere}
+.panel h2{font-size:1.3rem; font-weight:800}
+.rules{margin:0; padding-left:1.2em; display:grid; gap:8px}
+.help{border-radius:16px; background:var(--brand-soft); border:1px solid var(--line); padding:16px; display:grid; gap:6px}
+.help .num{font-family:var(--font-display); font-weight:800; font-size:2rem; line-height:1}
+.help a{color:var(--brand); font-weight:700}
+.row2{display:grid; gap:12px}
+.foot{font-size:.85rem; color:var(--muted); text-align:center}
+
+@media (prefers-reduced-motion: reduce){
+  .bar i{transition:none}
+  .segs.hit{animation:none}
+}
+</style>
+
+<style>:root{color-scheme:light}html,body{margin:0}</style>
+</head>
+<body>
+<div class="app">
+  <div class="top"><span class="logo" id="logo"></span><div><span class="wordmark">Cyber Shield</span><span class="by">Created by Sana Naik</span></div></div>
+
+  <main>
+    <!-- WELCOME -->
+    <section id="welcome" aria-labelledby="welcomeTitle">
+      <div class="hero">
+        <h1 id="welcomeTitle" tabindex="-1">Spot the scam before it spots you.</h1>
+        <p>You will see messages like the ones people in India receive every day. Decide whether to report it or trust it. If you get fooled here, you lose only points, not money.</p>
+      </div>
+      <form class="panel" id="startForm" novalidate>
+        <div class="field">
+          <label for="name">Your name</label>
+          <input id="name" type="text" autocomplete="given-name" maxlength="30" placeholder="For example, Sunita">
+          <div class="err" id="nameErr" role="alert"></div>
+        </div>
+        <div class="field">
+          <label for="lang">Language</label>
+          <select id="lang">
+            <option value="en" selected>English</option>
+            <option value="hi" disabled>हिन्दी (coming soon)</option>
+            <option value="mr" disabled>मराठी (coming soon)</option>
+          </select>
+        </div>
+        <fieldset class="field">
+          <legend>How many messages?</legend>
+          <div class="opts">
+            <label class="opt"><input type="radio" name="len" value="5" id="len5" checked><span class="card"><strong>Quick round</strong><small>5 messages</small></span></label>
+            <label class="opt"><input type="radio" name="len" value="10" id="len10"><span class="card"><strong>Full round</strong><small>10 messages</small></span></label>
+          </div>
+        </fieldset>
+        <p class="hint">You start with 100 Trust Points. Each scam that fools you costs 25.</p>
+        <button class="btn primary" type="submit" id="startBtn">Start the challenge</button>
+        <p class="hint" id="played" hidden></p>
+      </form>
+    </section>
+
+    <!-- GAME -->
+    <section id="game" hidden>
+      <div class="hud">
+        <div class="meter">
+          <div class="lbl"><span>Message</span><b id="prog">1 of 5</b></div>
+          <div class="bar"><i id="barFill"></i></div>
+        </div>
+        <div class="meter">
+          <div class="lbl"><span>Trust points</span><b id="pts">100</b></div>
+          <div class="segs" id="segs" role="img" aria-label="Trust points 100 out of 100"></div>
+        </div>
+      </div>
+
+      <div class="phone">
+        <div class="screen" id="screen">
+          <div class="statusbar"><span>6:42</span><span>4G &nbsp; 78%</span></div>
+          <div class="appbar">
+            <div class="avatar" id="avatar"></div>
+            <div><div class="who" id="who"></div><div class="via" id="via"></div></div>
+          </div>
+          <div class="chat" id="chat"></div>
+        </div>
+      </div>
+
+      <div class="actions" id="actions">
+        <h2 id="ask" tabindex="-1">What will you do?</h2>
+        <button class="btn report" type="button" id="reportBtn"></button>
+        <button class="btn trust" type="button" id="trustBtn"></button>
+      </div>
+
+      <div class="fb" id="fb" hidden>
+        <div class="banner" id="banner">
+          <span class="bicon" id="bicon"></span>
+          <div><h2 id="fbTitle" tabindex="-1"></h2><p id="fbSub"></p></div>
+        </div>
+        <h3 id="fbHead"></h3>
+        <ol class="flags" id="fbList"></ol>
+        <div class="tip"><b>What to do</b><p id="fbTip"></p></div>
+        <button class="btn primary" type="button" id="nextBtn"></button>
+      </div>
+    </section>
+
+    <!-- SUMMARY -->
+    <section id="summary" hidden>
+      <div class="rating" id="rating">
+        <p class="eyebrow" id="sumHello"></p>
+        <h1 id="sumTitle" tabindex="-1"></h1>
+        <p id="sumText"></p>
+        <div class="stats"><span id="sumScore"></span><span id="sumTrust"></span></div>
+      </div>
+
+      <div class="panel">
+        <h2>Your answers</h2>
+        <ul class="rows" id="rows"></ul>
+      </div>
+
+      <div class="panel">
+        <h2>Scams that fooled you on this device</h2>
+        <ul class="rows" id="fooledList"></ul>
+        <p class="hint" id="fooledNote"></p>
+      </div>
+
+      <div class="panel">
+        <h2>Four rules to remember</h2>
+        <ul class="rules">
+          <li>Never share your OTP, UPI PIN or card PIN with anyone, even someone who says they are from your bank.</li>
+          <li>Real offices do not threaten you by SMS or ask you to stay on a video call.</li>
+          <li>Do not install an app from a link. A file ending in .apk can read your messages and OTPs.</li>
+          <li>You never need a PIN or QR scan to receive money. Check your own bank balance, not a screenshot.</li>
+        </ul>
+        <div class="help">
+          <span class="num">1930</span>
+          <p>National Cyber Crime Helpline. If money was lost, call at once or report at <a href="https://cybercrime.gov.in" target="_blank" rel="noopener">cybercrime.gov.in</a>. Quick reports give the best chance of stopping a transfer.</p>
+        </div>
+      </div>
+
+      <div class="row2">
+        <button class="btn primary" type="button" id="againBtn">Play again</button>
+        <button class="btn ghost" type="button" id="changeBtn">Change name or length</button>
+      </div>
+    </section>
+  </main>
+
+  <p class="foot">Created by Sana Naik. All messages are simulated for learning. Phone numbers are masked and the banks and offices shown are made up.</p>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var ICONS = {
+    shield:'<path d="M12 2.8 4.8 5.7v5.5c0 4.4 3 8 7.2 9.8 4.2-1.8 7.2-5.4 7.2-9.8V5.7L12 2.8z"/>',
+    shieldcheck:'<path d="M12 2.8 4.8 5.7v5.5c0 4.4 3 8 7.2 9.8 4.2-1.8 7.2-5.4 7.2-9.8V5.7L12 2.8z"/><path d="M8.6 12l2.4 2.4 4.4-4.8"/>',
+    ban:'<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>',
+    check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+    checkc:'<circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/>',
+    cross:'<path d="M6 6l12 12M18 6L6 18"/>',
+    warn:'<path d="M12 3.5 2.8 19.5h18.4L12 3.5z"/><path d="M12 10v4.5M12 17.2v.1"/>',
+    link:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+    file:'<path d="M6 3h8l4 4v14H6V3z"/><path d="M14 3v4h4"/>',
+    arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>'
+  };
+  function ic(n){
+    return '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICONS[n] + '</svg>';
+  }
+
+  /* ---------- Scenario data ---------- */
+  var SCENARIOS = [
+    {
+      id:"power-cut", name:"Power cut threat SMS", scam:true,
+      who:"+91 98••• ••210", via:"Text message", whoFlag:1, time:"6:42 PM",
+      body:["Dear customer, your electricity bill of last month is unpaid. ",
+            {f:2,t:"Your power will be disconnected tonight at 9:30 PM"},
+            " unless you update now. ",
+            {f:3,t:"Call electricity officer immediately on 98••• ••210."}],
+      extra:null,
+      flags:[
+        {t:"Sent from a personal mobile number", w:"Electricity boards send bills from a short sender name, never from a personal 10-digit mobile number."},
+        {t:"Threat to cut power tonight", w:"A real board never cuts power the same night because of an SMS. Scammers create panic so you act before you think."},
+        {t:"Asks you to call an ‘officer’", w:"Never call a number given in a threatening message. Use the number printed on your paper bill or the official app."}
+      ],
+      tip:"If you are worried about a bill, check it on the official website or app, or visit the nearest electricity office."
+    },
+    {
+      id:"lottery", name:"KBC lottery WhatsApp", scam:true,
+      who:"+91 70••• ••845", via:"WhatsApp · not in your contacts", whoFlag:0, time:"11:05 AM",
+      body:["Congratulations!! You have won ",
+            {f:1,t:"₹25,00,000 in the Kaun Banega Crorepati lucky draw"},
+            ". To claim your prize ",
+            {f:2,t:"pay a ₹3,500 processing fee"},
+            " using the link below. ",
+            {f:3,t:"Offer ends today. Do not tell anyone."}],
+      extra:{type:"link", label:"kbc-luckywinner-claim.in/prize"},
+      flags:[
+        {t:"You never entered any contest", w:"You cannot win a lottery you did not enter. Real prizes do not arrive by WhatsApp."},
+        {t:"A fee to collect the prize", w:"A real prize never asks for money first. The ‘processing fee’ is how the scammer takes your money."},
+        {t:"Hurry and secrecy", w:"Scammers tell you to rush and keep quiet so your family cannot warn you."}
+      ],
+      tip:"Delete the message and block the number. If someone you know replied to it, warn them."
+    },
+    {
+      id:"bank-credit", name:"Bank pension credit alert", scam:false,
+      who:"AD-CITYBK", via:"Text message", whoFlag:1, time:"9:12 AM",
+      body:["Rs 18,500.00 credited to A/c ",
+            {f:2,t:"XX4821"},
+            " on 01-Nov-26 (Pension). Avl Bal Rs 42,310.55. - City Bank"],
+      extra:null,
+      flags:[
+        {t:"Sender is a short name-style ID", w:"Genuine bank alerts come from an ID with letters, like AD-CITYBK, not from a personal mobile number."},
+        {t:"Only the last digits of the account", w:"Banks show your account number partly hidden and never print it in full."},
+        {t:"It asks you to do nothing", w:"There is no link, no phone number to call and no request for an OTP. It only tells you what happened."}
+      ],
+      tip:"If you ever see a debit you did not make, call your bank using the number on your passbook or card."
+    },
+    {
+      id:"upi-refund", name:"Wrong UPI payment refund request", scam:true,
+      who:"Buyer (old fan)", via:"WhatsApp · +91 63••• ••914 · not in your contacts", whoFlag:0, time:"4:20 PM",
+      body:["Sir I sent ₹5,000 for the old fan by mistake, I wanted to send ₹500. ",
+            {f:1,t:"Please return ₹4,500 right now."},
+            " ",
+            {f:2,t:"See the payment screenshot."},
+            " ",
+            {f:3,t:"I need it for hospital, please be fast."}],
+      extra:{type:"shot"},
+      flags:[
+        {t:"Asks you to return money quickly", w:"First open your own bank app or passbook. If no money has arrived, nothing was sent."},
+        {t:"A screenshot is not proof", w:"Screenshots are easy to fake. Only your own bank balance or your bank’s SMS proves money arrived."},
+        {t:"Hurry and a sad story", w:"Urgent, emotional stories are used to stop you from checking."}
+      ],
+      tip:"Check your bank balance yourself. If the buyer insists, ask them to reverse the payment from their own app."
+    },
+    {
+      id:"kyc-apk", name:"KYC update app (.apk) SMS", scam:true,
+      who:"+91 83••• ••667", via:"Text message", whoFlag:1, time:"2:31 PM",
+      body:["Dear user, your bank account will be ",
+            {f:2,t:"blocked today"},
+            " because KYC has expired. ",
+            {f:3,t:"Install our update app"},
+            " to continue."],
+      extra:{type:"apk", label:"KYC_Update.apk", size:"18 MB"},
+      flags:[
+        {t:"Sent from a personal mobile number", w:"Banks send alerts from a short sender name, not from a personal number."},
+        {t:"Account ‘blocked today’", w:"This is a scare tactic. Banks give written notice and time, and they do not block accounts over an SMS."},
+        {t:"Asks you to install an app from a link", w:"A file ending in .apk from outside the Play Store can secretly read your SMS and OTPs and empty your account. Never open it."}
+      ],
+      tip:"Update KYC only at your bank branch or inside the official app you already have."
+    },
+    {
+      id:"digital-arrest", name:"‘Digital arrest’ video call threat", scam:true,
+      who:"Inspector Rao – Crime Branch", via:"WhatsApp · +91 99••• ••158 · not in your contacts", whoFlag:0, time:"10:48 AM",
+      body:["A parcel booked in your name contains illegal items. You are now under ",
+            {f:1,t:"digital arrest"},
+            ". ",
+            {f:2,t:"Stay on this video call and do not tell your family."},
+            " To clear your name, ",
+            {f:3,t:"transfer money to the RBI safe account"},
+            "."],
+      extra:null,
+      flags:[
+        {t:"‘Digital arrest’ does not exist", w:"There is no such thing as digital arrest in Indian law. Police do not arrest anyone over a video call or WhatsApp."},
+        {t:"Keeps you on the call and silent", w:"Scammers isolate you so nobody can tell you it is a fraud. Hang up and talk to someone you trust."},
+        {t:"Asks you to send money", w:"No police officer, court or bank asks you to move money to a ‘safe account’. Anyone who does is a scammer."}
+      ],
+      tip:"Hang up, do not pay, and tell your family. If you already sent money, call 1930 immediately."
+    },
+    {
+      id:"power-bill", name:"Genuine electricity bill notice", scam:false,
+      who:"VK-PWRBIL", via:"Text message", whoFlag:1, time:"8:30 AM",
+      body:["Your electricity bill for Oct-26 is Rs 1,240.00. ",
+            {f:2,t:"Due date 20-Nov-26."},
+            " ",
+            {f:3,t:"Pay on the official website, app, or at your nearest bill centre."},
+            " - Power Distribution Co."],
+      extra:null,
+      flags:[
+        {t:"Sender is a name-style ID", w:"The message comes from an ID with letters, not from a personal 10-digit number."},
+        {t:"Weeks to pay, no threat", w:"A due date well ahead is normal. Real notices do not say your power will be cut tonight."},
+        {t:"Points you to official ways to pay", w:"It names the official website, app or bill centre. There is no ‘officer’ to call and no link to click."}
+      ],
+      tip:"Even for a real bill, pay only on the website or app you already use, not through a link in a message."
+    },
+    {
+      id:"job-fee", name:"Work-from-home job with a fee", scam:true,
+      who:"+91 70••• ••392", via:"WhatsApp · not in your contacts", whoFlag:0, time:"1:15 PM",
+      body:["Hello! Work from home and ",
+            {f:1,t:"earn ₹5,000 every day just by liking videos"},
+            ". To get your login, ",
+            {f:2,t:"pay ₹500 registration fee"},
+            ". ",
+            {f:3,t:"Only 5 seats left. Reply in 10 minutes."}],
+      extra:null,
+      flags:[
+        {t:"Too much money for too little work", w:"Nobody pays ₹5,000 a day for liking videos. If it sounds too easy, it is bait."},
+        {t:"You pay to get a job", w:"Real employers pay you. A small fee is used to win your trust before a bigger loss."},
+        {t:"Rush to reply", w:"‘Only 5 seats’ and ‘10 minutes’ are pressure tricks to stop you from thinking."}
+      ],
+      tip:"Look for jobs only on well-known portals or the company’s own website, and never pay to be hired."
+    },
+    {
+      id:"qr-pin", name:"Scan QR to receive money", scam:true,
+      who:"Buyer – Amit", via:"WhatsApp · +91 91••• ••226 · not in your contacts", whoFlag:0, time:"5:55 PM",
+      body:["Sir I am sending your ₹3,000 now. ",
+            {f:1,t:"Please scan this QR code and enter your UPI PIN to receive it."},
+            " ",
+            {f:2,t:"The payment link expires in 5 minutes."}],
+      extra:{type:"qr"},
+      flags:[
+        {t:"Scan and PIN to receive money", w:"You never scan a QR code or type your PIN to receive money. A PIN is only needed to send money. Scanning this would take money out of your account."},
+        {t:"A ticking clock", w:"The ‘expires in 5 minutes’ line is there to rush you past the doubt."}
+      ],
+      tip:"Say no. To receive money, just share your UPI ID or let the buyer scan your own QR code."
+    },
+    {
+      id:"clinic", name:"Genuine clinic appointment reminder", scam:false,
+      who:"VM-CITYCL", via:"Text message", whoFlag:1, time:"7:40 PM",
+      body:["Reminder: your appointment with Dr. Patil at City Clinic is tomorrow at 10:30 AM. ",
+            {f:2,t:"To reschedule, call the reception number on your appointment slip."}],
+      extra:null,
+      flags:[
+        {t:"Sender is a name-style ID", w:"The message comes from an ID with letters, not from a stranger’s mobile number."},
+        {t:"Uses the number you already have", w:"It sends you to the reception number on your own slip, not to a new number or a link."},
+        {t:"You really booked this visit", w:"Trust it because you remember booking. If you never booked an appointment, treat the message with suspicion."}
+      ],
+      tip:"If the message mentions a visit you did not book, ignore it and call the clinic using a number you already know."
+    }
+  ];
+
+  /* ---------- Logic ---------- */
+  function shuffle(arr, rnd){
+    var r = arr.slice();
+    for (var i = r.length - 1; i > 0; i--){
+      var j = Math.floor(rnd() * (i + 1));
+      var t = r[i]; r[i] = r[j]; r[j] = t;
+    }
+    return r;
+  }
+  function buildRound(total, rnd){
+    rnd = rnd || Math.random;
+    var genuine = shuffle(SCENARIOS.filter(function(s){ return !s.scam; }), rnd);
+    var scams = shuffle(SCENARIOS.filter(function(s){ return s.scam; }), rnd);
+    var pick;
+    if (total >= SCENARIOS.length){
+      pick = genuine.concat(scams);
+    } else {
+      var ng = Math.min(2, genuine.length);
+      pick = genuine.slice(0, ng).concat(scams.slice(0, total - ng));
+    }
+    return shuffle(pick, rnd);
+  }
+  function ratingFor(correct, total){
+    var p = correct / total;
+    if (p >= 0.9) return "expert";
+    if (p >= 0.6) return "sharper";
+    return "vulnerable";
+  }
+  var RATINGS = {
+    expert:{label:"Cyber Expert", icon:"shieldcheck", text:"You caught nearly every trick. Teach someone in your family what you learned today."},
+    sharper:{label:"Getting Sharper", icon:"shield", text:"You caught many scams, but a few slipped through. Read the red flags below and play again."},
+    vulnerable:{label:"Highly Vulnerable", icon:"warn", text:"Several scams fooled you. That is exactly why this game exists. Play again and read each red flag slowly."}
+  };
+
+  /* ---------- Device stats ---------- */
+  var KEY = "cybershield.v1";
+  function loadStats(){
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw){
+        var o = JSON.parse(raw);
+        if (o && typeof o === "object"){
+          return {rounds:+o.rounds || 0, fooled:(o.fooled && typeof o.fooled === "object") ? o.fooled : {}, name:typeof o.name === "string" ? o.name : ""};
+        }
+      }
+    } catch(e){}
+    return {rounds:0, fooled:{}, name:""};
+  }
+  function saveStats(){
+    try { localStorage.setItem(KEY, JSON.stringify(stats)); } catch(e){}
+  }
+  var stats = loadStats();
+
+  /* ---------- DOM helpers ---------- */
+  function $(id){ return document.getElementById(id); }
+  function h(tag, cls, text){
+    var el = document.createElement(tag);
+    if (cls) el.className = cls;
+    if (text != null) el.textContent = text;
+    return el;
+  }
+  function mk(n, text){
+    var m = h("mark", "flag");
+    m.appendChild(document.createTextNode(text));
+    m.appendChild(h("sup", "fn", String(n)));
+    return m;
+  }
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function show(id){
+    ["welcome", "game", "summary"].forEach(function(s){ $(s).hidden = (s !== id); });
+  }
+  function toTop(){ window.scrollTo(0, 0); }
+
+  function qrSvg(){
+    var N = 21, cells = "", seed = 7;
+    function rnd(){ seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; }
+    function finder(x, y){
+      return '<rect x="'+x+'" y="'+y+'" width="7" height="7" fill="#111"/><rect x="'+(x+1)+'" y="'+(y+1)+'" width="5" height="5" fill="#fff"/><rect x="'+(x+2)+'" y="'+(y+2)+'" width="3" height="3" fill="#111"/>';
+    }
+    for (var y = 0; y < N; y++){
+      for (var x = 0; x < N; x++){
+        var inF = (x < 8 && y < 8) || (x > N - 9 && y < 8) || (x < 8 && y > N - 9);
+        if (!inF && rnd() > 0.52) cells += '<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="#111"/>';
+      }
+    }
+    return '<svg class="qr" viewBox="-1 -1 23 23" role="img" aria-label="QR code" xmlns="http://www.w3.org/2000/svg"><rect x="-1" y="-1" width="23" height="23" fill="#fff"/>' + cells + finder(0,0) + finder(N-7,0) + finder(0,N-7) + '</svg>';
+  }
+
+  /* ---------- Game state ---------- */
+  var state = {name:"", total:5, round:[], i:0, points:100, results:[], answered:false};
+
+  function renderMeters(hit){
+    var n = state.round.length;
+    var shown = Math.min(state.i + 1, n);
+    $("prog").textContent = shown + " of " + n;
+    $("barFill").style.width = ((state.answered ? state.i + 1 : state.i) / n * 100) + "%";
+    $("pts").textContent = String(state.points);
+    var segs = $("segs");
+    segs.textContent = "";
+    for (var k = 0; k < 4; k++){
+      segs.appendChild(h("span", k < state.points / 25 ? "seg" : "seg lost"));
+    }
+    segs.setAttribute("aria-label", "Trust points " + state.points + " out of 100");
+    segs.classList.remove("hit");
+    if (hit && !reduce){ void segs.offsetWidth; segs.classList.add("hit"); }
+  }
+
+  function renderMessage(){
+    var sc = state.round[state.i];
+    state.answered = false;
+    var screen = $("screen");
+    screen.classList.remove("revealed", "is-genuine");
+    if (!sc.scam) screen.classList.add("is-genuine");
+
+    var who = $("who");
+    who.textContent = "";
+    if (sc.whoFlag) who.appendChild(mk(sc.whoFlag, sc.who)); else who.textContent = sc.who;
+    $("via").textContent = sc.via;
+    $("avatar").textContent = /^[A-Za-z]/.test(sc.who) ? sc.who.charAt(0).toUpperCase() : "#";
+
+    var chat = $("chat");
+    chat.textContent = "";
+    chat.appendChild(h("span", "day", "Today"));
+    var bubble = h("div", "bubble");
+    var p = h("p");
+    sc.body.forEach(function(part){
+      if (typeof part === "string") p.appendChild(document.createTextNode(part));
+      else p.appendChild(mk(part.f, part.t));
+    });
+    bubble.appendChild(p);
+    var ex = sc.extra;
+    if (ex){
+      if (ex.type === "link"){
+        var l = h("div", "chip link"); l.innerHTML = ic("link"); l.appendChild(h("span", null, ex.label)); bubble.appendChild(l);
+      } else if (ex.type === "apk"){
+        var a = h("div", "chip"); a.innerHTML = ic("file");
+        var d = h("div"); d.appendChild(h("b", null, ex.label)); d.appendChild(h("small", null, ex.size + " · App file"));
+        a.appendChild(d); bubble.appendChild(a);
+      } else if (ex.type === "shot"){
+        var s = h("div", "shot");
+        s.appendChild(h("span", "tag", "Screenshot"));
+        s.appendChild(h("span", "amt", "₹5,000"));
+        s.appendChild(h("span", "st", "Payment processing · Ref 4•••••21"));
+        bubble.appendChild(s);
+      } else if (ex.type === "qr"){
+        var q = h("div"); q.innerHTML = qrSvg(); bubble.appendChild(q);
+      }
+    }
+    chat.appendChild(bubble);
+    chat.appendChild(h("span", "time", sc.time));
+
+    $("actions").hidden = false;
+    $("fb").hidden = true;
+    renderMeters(false);
+  }
+
+  function choose(action){
+    if (state.answered) return;
+    state.answered = true;
+    var sc = state.round[state.i];
+    var correct = (sc.scam && action === "report") || (!sc.scam && action === "trust");
+    var fooled = sc.scam && action === "trust";
+    if (fooled) state.points = Math.max(0, state.points - 25);
+    state.results.push({id:sc.id, name:sc.name, scam:sc.scam, action:action, correct:correct, fooled:fooled});
+
+    $("screen").classList.add("revealed");
+    var banner = $("banner"), title = $("fbTitle"), sub = $("fbSub"), icon = $("bicon");
+    if (correct){
+      banner.className = "banner win"; icon.innerHTML = ic("check");
+      title.textContent = sc.scam ? "Well done. That was a scam." : "Correct. This message is genuine.";
+      sub.textContent = sc.scam ? "You stopped it before any harm was done." : "You did not let fear stop you from trusting a real alert.";
+    } else if (fooled){
+      banner.className = "banner lose"; icon.innerHTML = ic("cross");
+      title.textContent = "You were fooled. −25 Trust Points";
+      sub.textContent = "In real life this could cost money. Here you can learn safely.";
+    } else {
+      banner.className = "banner info"; icon.innerHTML = ic("warn");
+      title.textContent = "This one was genuine.";
+      sub.textContent = "Blocking is the safer mistake and costs no points, but real alerts matter too. Learn the green signs below.";
+    }
+    var fb = $("fb");
+    fb.classList.toggle("genuine", !sc.scam);
+    $("fbHead").textContent = sc.scam ? "Red flags in this message" : "Green signs in this message";
+    var list = $("fbList");
+    list.textContent = "";
+    sc.flags.forEach(function(f, idx){
+      var li = h("li");
+      li.appendChild(h("span", "badge", String(idx + 1)));
+      var box = h("div");
+      box.appendChild(h("b", null, f.t));
+      box.appendChild(h("p", null, f.w));
+      li.appendChild(box);
+      list.appendChild(li);
+    });
+    $("fbTip").textContent = sc.tip;
+    $("nextBtn").innerHTML = (state.i + 1 >= state.round.length ? "See my result" : "Next message") + " " + ic("arrow");
+
+    $("actions").hidden = true;
+    fb.hidden = false;
+    renderMeters(fooled);
+    title.focus({preventScroll:true});
+    banner.scrollIntoView({behavior: reduce ? "auto" : "smooth", block:"nearest"});
+  }
+
+  function next(){
+    state.i++;
+    if (state.i >= state.round.length){ showSummary(); return; }
+    renderMessage();
+    toTop();
+    $("ask").focus({preventScroll:true});
+  }
+
+  function startRound(){
+    state.round = buildRound(state.total);
+    state.i = 0; state.points = 100; state.results = []; state.answered = false;
+    show("game");
+    renderMessage();
+    toTop();
+    $("ask").focus({preventScroll:true});
+  }
+
+  function showSummary(){
+    var total = state.results.length;
+    var correct = state.results.filter(function(r){ return r.correct; }).length;
+
+    stats.rounds += 1;
+    state.results.forEach(function(r){
+      if (r.fooled) stats.fooled[r.id] = (stats.fooled[r.id] || 0) + 1;
+    });
+    stats.name = state.name;
+    saveStats();
+
+    var key = ratingFor(correct, total), R = RATINGS[key];
+    $("rating").className = "rating " + key;
+    $("sumHello").textContent = "Namaste, " + state.name;
+    var t = $("sumTitle");
+    t.innerHTML = ic(R.icon);
+    t.appendChild(document.createTextNode(R.label));
+    $("sumText").textContent = R.text;
+    $("sumScore").textContent = correct + " of " + total + " correct";
+    $("sumTrust").textContent = "Trust Points: " + state.points;
+
+    var rows = $("rows");
+    rows.textContent = "";
+    state.results.forEach(function(r){
+      var li = h("li");
+      var cls = r.correct ? "mk" : (r.fooled ? "mk bad" : "mk meh");
+      var m = h("span", cls); m.innerHTML = ic(r.correct ? "check" : (r.fooled ? "cross" : "warn"));
+      li.appendChild(m);
+      var box = h("div");
+      box.appendChild(h("strong", null, r.name));
+      var verdict = r.correct ? "Correct" : (r.fooled ? "Fooled" : "Too careful");
+      box.appendChild(h("small", null, verdict + " · You chose " + (r.action === "report" ? "Report / Block" : "Trust / Proceed") + " · It was " + (r.scam ? "a scam" : "genuine")));
+      li.appendChild(box);
+      rows.appendChild(li);
+    });
+
+    var fl = $("fooledList");
+    fl.textContent = "";
+    var entries = Object.keys(stats.fooled).map(function(id){
+      var sc = SCENARIOS.filter(function(s){ return s.id === id; })[0];
+      return sc ? {name:sc.name, n:stats.fooled[id]} : null;
+    }).filter(function(e){ return e && e.n > 0; }).sort(function(a, b){ return b.n - a.n; }).slice(0, 4);
+    entries.forEach(function(e){
+      var li = h("li");
+      var m = h("span", "mk bad"); m.innerHTML = ic("cross"); li.appendChild(m);
+      var box = h("div");
+      box.appendChild(h("strong", null, e.name));
+      box.appendChild(h("small", null, "Fooled you " + e.n + (e.n === 1 ? " time" : " times")));
+      li.appendChild(box);
+      fl.appendChild(li);
+    });
+    $("fooledList").hidden = entries.length === 0;
+    $("fooledNote").textContent = entries.length
+      ? "Counted over " + stats.rounds + (stats.rounds === 1 ? " round" : " rounds") + " played on this device."
+      : "No scam has fooled you on this device yet. Rounds played here: " + stats.rounds + ".";
+
+    show("summary");
+    toTop();
+    t.focus({preventScroll:true});
+  }
+
+  /* ---------- Wiring ---------- */
+  $("logo").innerHTML = ic("shieldcheck");
+  $("reportBtn").innerHTML = ic("ban") + "<span>Report / Block</span>";
+  $("trustBtn").innerHTML = ic("checkc") + "<span>Trust / Proceed</span>";
+  $("reportBtn").addEventListener("click", function(){ choose("report"); });
+  $("trustBtn").addEventListener("click", function(){ choose("trust"); });
+  $("nextBtn").addEventListener("click", next);
+
+  $("startForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    var name = $("name").value.replace(/\s+/g, " ").trim();
+    if (!name){
+      $("nameErr").textContent = "Please type your name to begin.";
+      $("name").focus();
+      return;
+    }
+    $("nameErr").textContent = "";
+    state.name = name;
+    state.total = $("len10").checked ? 10 : 5;
+    stats.name = name; saveStats();
+    startRound();
+  });
+  $("againBtn").addEventListener("click", startRound);
+  $("changeBtn").addEventListener("click", function(){
+    show("welcome"); toTop(); $("welcomeTitle").focus({preventScroll:true});
+  });
+
+  if (stats.name) $("name").value = stats.name;
+  if (stats.rounds > 0){
+    var pl = $("played");
+    pl.hidden = false;
+    pl.textContent = "Rounds played on this device: " + stats.rounds + ".";
+  }
+})();
+</script>
+</body>
+</html>
