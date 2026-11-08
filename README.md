@@ -4,7 +4,7 @@
 
 Cyber Shield is a web-based educational game that trains people to recognise and avoid online financial scams. It is designed especially for senior citizens, rural communities and new internet users. Instead of reading a long cyber-safety document, players learn by playing: they see realistic simulated messages and must decide whether to report them or trust them.
 
-**Play the game:** https://sananaik313.github.io/cyber-shield/
+**Play the game:** https://sananaik313.github.io/Cybershield/
 
 ## How it works
 
